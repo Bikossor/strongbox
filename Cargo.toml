@@ -5,3 +5,4 @@ edition = "2024"
 
 [dependencies]
 dotenvy = "0.15"
+diesel = { version = "2.2.0", features = ["sqlite", "returning_clauses_for_sqlite_3_35"] }
