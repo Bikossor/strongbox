@@ -1,5 +1,8 @@
 use axum::{
     Router,
+    extract::{Request, State},
+    middleware::{self, Next},
+    response::Response,
     routing::{get, post},
 };
 use tokio::net::TcpListener;
@@ -14,7 +17,9 @@ async fn main() {
         .route("/health", get(health_check))
         .route("/register", post(register_user))
         .route("/login", post(login_user));
-    let protected_router = Router::new().route("/logout", post(logout));
+    let protected_router = Router::new()
+        .route("/logout", post(logout))
+        .route_layer(middleware::from_fn_with_state(app_state, auth_middleware));
 
     let api_router = Router::new().merge(public_router).merge(protected_router);
 
@@ -45,5 +50,9 @@ async fn login_user() {
 }
 
 async fn logout() {
+    todo!()
+}
+
+async fn auth_middleware(State(state): State<AppState>, request: Request, next: Next) -> Response {
     todo!()
 }
