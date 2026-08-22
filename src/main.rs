@@ -3,9 +3,10 @@ use axum::{
     extract::{Request, State},
     middleware::{self, Next},
     response::Response,
-    routing::{get, post},
+    routing::{get, get_service, post},
 };
 use tokio::net::TcpListener;
+use tower_http::services::{ServeDir, ServeFile};
 
 #[derive(Clone)]
 struct AppState {}
@@ -22,19 +23,18 @@ async fn main() {
         .route_layer(middleware::from_fn_with_state(app_state, auth_middleware));
 
     let api_router = Router::new().merge(public_router).merge(protected_router);
+    let frontend_service = get_service(
+        ServeDir::new("frontend/index.html")
+            .not_found_service(ServeFile::new("frontend/index.html")),
+    );
 
     let app_router = Router::new()
         .nest("/api/v1", api_router)
-        .fallback(hello_world);
+        .fallback_service(frontend_service);
 
     let listener = TcpListener::bind("0.0.0.0:8080").await.unwrap();
 
     axum::serve(listener, app_router).await.unwrap();
-}
-
-// basic handler that responds with a static string
-async fn hello_world() -> &'static str {
-    "Hello, world!"
 }
 
 async fn health_check() {
