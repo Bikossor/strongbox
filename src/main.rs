@@ -4,8 +4,12 @@ use axum::{
 };
 use tokio::net::TcpListener;
 
+#[derive(Clone)]
+struct AppState {}
+
 #[tokio::main]
 async fn main() {
+    let app_state = AppState {};
     let public_router = Router::new()
         .route("/health", get(health_check))
         .route("/register", post(register_user))
