@@ -18,9 +18,13 @@ async fn main() {
         .route("/health", get(health_check))
         .route("/register", post(register_user))
         .route("/login", post(login_user));
-    let protected_router = Router::new()
-        .route("/logout", post(logout))
-        .route_layer(middleware::from_fn_with_state(app_state, auth_middleware));
+    let protected_router =
+        Router::new()
+            .route("/logout", post(logout))
+            .route_layer(middleware::from_fn_with_state(
+                app_state.clone(),
+                auth_middleware,
+            ));
 
     let api_router = Router::new().merge(public_router).merge(protected_router);
     let frontend_service = get_service(
