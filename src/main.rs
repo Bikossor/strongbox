@@ -7,15 +7,23 @@ use axum::{
     response::Response,
     routing::{get, get_service, post},
 };
+use sea_orm::{Database, DatabaseConnection};
 use tokio::net::TcpListener;
 use tower_http::services::{ServeDir, ServeFile};
 
 #[derive(Clone)]
-struct AppState {}
+struct AppState {
+    database: DatabaseConnection,
+}
 
 #[tokio::main]
 async fn main() {
-    let app_state = AppState {};
+    let database = Database::connect("sqlite://database.db?mode=rwc")
+        .await
+        .unwrap();
+
+    let app_state = AppState { database };
+
     let public_router = Router::new()
         .route("/health", get(health_check))
         .route("/register", post(register_user))
