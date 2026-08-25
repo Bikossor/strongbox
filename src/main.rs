@@ -8,8 +8,20 @@ use axum::{
     routing::{get, get_service, post},
 };
 use sea_orm::{Database, DatabaseConnection};
+use serde::Deserialize;
 use tokio::net::TcpListener;
 use tower_http::services::{ServeDir, ServeFile};
+
+struct JwtClaims {
+    sub: String, // subject (user id)
+    exp: usize,  // expiration time
+    nonce: String,
+}
+
+#[derive(Debug, Deserialize)]
+struct RefreshTokenPayload {
+    refresh_token: String,
+}
 
 #[derive(Clone)]
 struct AppState {
