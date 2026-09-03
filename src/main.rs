@@ -31,9 +31,13 @@ struct AppState {
 
 #[tokio::main]
 async fn main() {
-    let database = Database::connect("sqlite://database.db?mode=rwc")
-        .await
-        .unwrap();
+    dotenvy::dotenv().expect("dotenv file must be present!");
+
+    let database = Database::connect(
+        dotenvy::var("DATABASE_URL").expect("environment variable 'DATABASE_URL' not found!"),
+    )
+    .await
+    .unwrap();
 
     Migrator::up(&database, None).await.unwrap();
 
