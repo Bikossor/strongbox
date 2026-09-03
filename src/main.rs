@@ -7,6 +7,7 @@ use axum::{
     response::Response,
     routing::{get, get_service, post},
 };
+use migration::{Migrator, MigratorTrait};
 use sea_orm::{Database, DatabaseConnection};
 use serde::Deserialize;
 use tokio::net::TcpListener;
@@ -33,6 +34,8 @@ async fn main() {
     let database = Database::connect("sqlite://database.db?mode=rwc")
         .await
         .unwrap();
+
+    Migrator::up(&database, None).await.unwrap();
 
     let app_state = AppState { database };
 
