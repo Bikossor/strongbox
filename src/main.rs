@@ -1,7 +1,7 @@
 mod errors;
 
 use axum::{
-    Router,
+    Json, Router,
     extract::{Request, State},
     middleware::{self, Next},
     response::Response,
@@ -9,7 +9,7 @@ use axum::{
 };
 use migration::{Migrator, MigratorTrait};
 use sea_orm::{Database, DatabaseConnection};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use tokio::net::TcpListener;
 use tower_http::services::{ServeDir, ServeFile};
 
@@ -55,7 +55,10 @@ async fn main() {
                 auth_middleware,
             ));
 
-    let api_router = Router::new().merge(public_router).merge(protected_router);
+    let api_router = Router::new()
+        .merge(public_router)
+        .merge(protected_router)
+        .with_state(app_state.clone());
     let frontend_service = get_service(
         ServeDir::new("frontend/index.html")
             .not_found_service(ServeFile::new("frontend/index.html")),
@@ -70,8 +73,20 @@ async fn main() {
     axum::serve(listener, app_router).await.unwrap();
 }
 
-async fn health_check() {
-    todo!()
+#[derive(Serialize)]
+struct HealthCheckResponse {
+    pub database_healthy: bool,
+}
+
+async fn health_check(State(state): State<AppState>) -> Json<HealthCheckResponse> {
+    return match state.database.ping().await {
+        Ok(_) => Json(HealthCheckResponse {
+            database_healthy: true,
+        }),
+        Err(_) => Json(HealthCheckResponse {
+            database_healthy: false,
+        }),
+    };
 }
 
 async fn register_user() {
