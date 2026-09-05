@@ -44,9 +44,9 @@ async fn main() {
     let app_state = AppState { database };
 
     let public_router = Router::new()
-        .route("/health", get(health_check))
-        .route("/register", post(register_user))
-        .route("/login", post(login_user));
+        .route("/health", get(get_health_check))
+        .route("/register", post(post_register_user))
+        .route("/login", post(post_login_user));
     let protected_router =
         Router::new()
             .route("/logout", post(logout))
@@ -78,7 +78,7 @@ struct HealthCheckResponse {
     pub database_healthy: bool,
 }
 
-async fn health_check(State(state): State<AppState>) -> Json<HealthCheckResponse> {
+async fn get_health_check(State(state): State<AppState>) -> Json<HealthCheckResponse> {
     return match state.database.ping().await {
         Ok(_) => Json(HealthCheckResponse {
             database_healthy: true,
@@ -89,11 +89,11 @@ async fn health_check(State(state): State<AppState>) -> Json<HealthCheckResponse
     };
 }
 
-async fn register_user() {
+async fn post_register_user() {
     todo!()
 }
 
-async fn login_user() {
+async fn post_login_user() {
     todo!()
 }
 
