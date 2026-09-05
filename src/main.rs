@@ -7,6 +7,7 @@ use axum::{
     response::Response,
     routing::{get, get_service, post},
 };
+use chrono::{DateTime, Utc};
 use migration::{Migrator, MigratorTrait};
 use sea_orm::{Database, DatabaseConnection};
 use serde::{Deserialize, Serialize};
@@ -76,15 +77,18 @@ async fn main() {
 #[derive(Serialize)]
 struct HealthCheckResponse {
     pub database_healthy: bool,
+    pub timestamp: DateTime<Utc>,
 }
 
 async fn get_health_check(State(state): State<AppState>) -> Json<HealthCheckResponse> {
     return match state.database.ping().await {
         Ok(_) => Json(HealthCheckResponse {
             database_healthy: true,
+            timestamp: Utc::now(),
         }),
         Err(_) => Json(HealthCheckResponse {
             database_healthy: false,
+            timestamp: Utc::now(),
         }),
     };
 }
