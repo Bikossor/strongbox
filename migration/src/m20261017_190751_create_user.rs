@@ -1,33 +1,33 @@
 use sea_orm_migration::{prelude::*, schema::*};
 
-#[derive(DeriveMigrationName)]
 pub struct Migration;
+
+impl MigrationName for Migration {
+    fn name(&self) -> &str {
+        "m20261017_190751_create_user"
+    }
+}
 
 #[async_trait::async_trait]
 impl MigrationTrait for Migration {
     async fn up(&self, manager: &SchemaManager) -> Result<(), DbErr> {
-        // Replace the sample below with your own migration scripts
-        todo!();
-
         manager
             .create_table(
                 Table::create()
-                    .table("post")
+                    .table("user")
                     .if_not_exists()
-                    .col(pk_auto("id"))
-                    .col(string("title"))
-                    .col(string("text"))
+                    .col(uuid_uniq("id"))
+                    .col(string("name"))
+                    .col(string("password_hash"))
+                    .col(date_time_default_now("created_at"))
                     .to_owned(),
             )
             .await
     }
 
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
-        // Replace the sample below with your own migration scripts
-        todo!();
-
         manager
-            .drop_table(Table::drop().table("post").to_owned())
+            .drop_table(Table::drop().table("user").to_owned())
             .await
     }
 }
