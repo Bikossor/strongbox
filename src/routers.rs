@@ -1,35 +1,31 @@
-use crate::{AppState, JwtClaims, errors::ApiError};
+use crate::{AppState, JwtClaims, errors::ApiError, health, user};
 use axum::{
-    Json, Router,
+    Router,
     extract::{FromRequestParts, Request, State},
     http::request::Parts,
     middleware::{self, Next},
     response::Response,
-    routing::{get, get_service, post},
+    routing::get_service,
 };
 use axum_extra::{
     TypedHeader,
     headers::{Authorization, authorization::Bearer},
 };
-use chrono::{DateTime, Utc};
 use jsonwebtoken::{DecodingKey, Validation, decode};
-use serde::Serialize;
 use tower_http::services::{ServeDir, ServeFile};
 use uuid::Uuid;
 
 pub fn create_app_router(app_state: AppState) -> Router {
     let public_router = Router::new()
-        .route("/health", get(get_health_check))
-        .route("/register", post(post_register_user))
-        .route("/login", post(post_login_user));
+        .merge(health::boundary::get_public_router())
+        .merge(user::boundary::get_public_router());
 
-    let protected_router =
-        Router::new()
-            .route("/logout", post(logout))
-            .route_layer(middleware::from_fn_with_state(
-                app_state.clone(),
-                auth_middleware,
-            ));
+    let protected_router = Router::new()
+        .merge(user::boundary::get_private_router())
+        .route_layer(middleware::from_fn_with_state(
+            app_state.clone(),
+            auth_middleware,
+        ));
 
     let api_router = Router::new()
         .merge(public_router)
@@ -44,37 +40,6 @@ pub fn create_app_router(app_state: AppState) -> Router {
     Router::new()
         .nest("/api/v1", api_router)
         .fallback_service(frontend_service)
-}
-
-#[derive(Serialize)]
-struct HealthCheckResponse {
-    pub database_healthy: bool,
-    pub timestamp: DateTime<Utc>,
-}
-
-async fn get_health_check(State(state): State<AppState>) -> Json<HealthCheckResponse> {
-    return match state.database.ping().await {
-        Ok(_) => Json(HealthCheckResponse {
-            database_healthy: true,
-            timestamp: Utc::now(),
-        }),
-        Err(_) => Json(HealthCheckResponse {
-            database_healthy: false,
-            timestamp: Utc::now(),
-        }),
-    };
-}
-
-async fn post_register_user() {
-    todo!()
-}
-
-async fn post_login_user() {
-    todo!()
-}
-
-async fn logout() {
-    todo!()
 }
 
 #[derive(Clone, Debug)]

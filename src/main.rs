@@ -1,5 +1,7 @@
 mod errors;
+mod health;
 mod routers;
+mod user;
 
 use migration::{Migrator, MigratorTrait};
 use sea_orm::{Database, DatabaseConnection};
