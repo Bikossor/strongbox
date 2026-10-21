@@ -1,3 +1,4 @@
+mod common;
 mod errors;
 mod health;
 mod routers;
@@ -5,26 +6,14 @@ mod user;
 
 use migration::{Migrator, MigratorTrait};
 use sea_orm::{Database, DatabaseConnection};
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use tokio::net::TcpListener;
 
 use crate::routers::create_app_router;
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
-struct JwtClaims {
-    sub: String, // subject (user id)
-    exp: usize,  // expiration time
-    nonce: String,
-}
-
 #[derive(Debug, Deserialize, Clone)]
 struct JwtConfig {
     secret: String,
-}
-
-#[derive(Debug, Deserialize)]
-struct RefreshTokenPayload {
-    refresh_token: String,
 }
 
 #[derive(Clone)]
