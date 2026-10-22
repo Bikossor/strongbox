@@ -1,8 +1,4 @@
-use argon2::{
-    Argon2, PasswordHash, PasswordHasher, PasswordVerifier,
-    password_hash::{Error, SaltString},
-};
-use rand::rngs::OsRng;
+use argon2::{Argon2, PasswordHash, PasswordHasher, PasswordVerifier, password_hash::Error};
 
 fn get_argon2_config() -> Argon2<'static> {
     // Defaults to m=19456 (19 MiB), t=2 and p=1
@@ -11,8 +7,7 @@ fn get_argon2_config() -> Argon2<'static> {
 
 pub fn hash_password(password: &str) -> Result<String, Error> {
     let argon2 = get_argon2_config();
-    let salt = SaltString::generate(&mut OsRng);
-    let hash = argon2.hash_password(password.as_bytes(), &salt)?;
+    let hash = argon2.hash_password(password.as_bytes())?;
     Ok(hash.to_string())
 }
 
